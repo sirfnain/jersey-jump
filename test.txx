@@ -1,3 +1,15 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.model";
+option java_outer_classname = "ApiResponse";
+
+message ApiResponse {
+  // Define your message fields here
+  string message = 1;
+}
+
+
 pom.xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
