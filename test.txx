@@ -1,156 +1,41 @@
-<build>
-        <plugins>
-            <!-- Spring Boot Maven Plugin to create the fat JAR -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <!-- Maven Assembly Plugin to create the zip distribution -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/zip.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
----------------
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
-    <id>zip</id>
-    <formats>
-        <format>zip</format>
-    </formats>
-    <includeBaseDirectory>false</includeBaseDirectory>
-    <fileSets>
-        <!-- Include the fat JAR -->
-        <fileSet>
-            <directory>${project.build.directory}</directory>
-            <includes>
-                <include>${project.build.finalName}.jar</include>
-            </includes>
-        </fileSet>
-        <!-- Include the cfg directory -->
-        <fileSet>
-            <directory>src/main/resources/cfg</directory>
-            <outputDirectory>cfg</outputDirectory>
-        </fileSet>
-    </fileSets>
-</assembly>
 
----------------------------------------------------------
-    <build>
-        <plugins>
-            <!-- Spring Boot Maven Plugin to create the fat JAR -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+**Key Responsibilities:**
 
+- **Design and Architecture:**
+  - Lead the design and architecture of repo trading applications using Java and the ION platform.
+  - Develop high-level product specifications with attention to system integration and feasibility.
+  - Ensure the technical feasibility of UI/UX designs and provide technical insights for business requirements.
 
+- **Team Leadership:**
+  - Manage and mentor a team of software engineers, providing technical guidance and career development.
+  - Coordinate with other team leads and stakeholders to ensure timely delivery of high-quality software solutions.
+  - Conduct code reviews, ensure coding standards are followed, and promote best practices within the team.
 
-------------
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
+- **Development:**
+  - Implement robust and scalable software solutions using Java, Spring, JMS (IBM MQ, Tibco EMS, Kafka), and other related technologies.
+  - Utilize GitLab for version control and continuous integration/deployment.
+  - Leverage Oracle databases for data storage and retrieval, ensuring high performance and reliability.
+  - Develop web-based applications using Struts, Spring MVC, JSP, Servlets, JavaScript, jQuery, HTML, and XML/XSLT.
 
-@Configuration
-public class ShutdownConfig {
+- **Collaboration:**
+  - Work closely with cross-functional teams including QA, DevOps, and Product Management.
+  - Participate in agile ceremonies such as sprint planning, stand-ups, and retrospectives.
+  - Engage with clients and stakeholders to gather requirements, provide updates, and deliver solutions.
 
-    @Bean
-    public GracefulShutdown gracefulShutdown(CountDownLatch latch) {
-        return new GracefulShutdown(latch);
-    }
+- **Cloud and Infrastructure:**
+  - Basic knowledge and experience with Azure for deploying and managing applications.
+  - Ensure application security, performance, and scalability on cloud infrastructure.
 
-    public static class GracefulShutdown {
+**Qualifications:**
 
-        private final CountDownLatch latch;
-
-        public GracefulShutdown(CountDownLatch latch) {
-            this.latch = latch;
-        }
-
-        @EventListener
-        public void onApplicationEvent(ContextClosedEvent event) {
-            System.out.println("Received ContextClosedEvent. Initiating graceful shutdown...");
-            latch.countDown();  // Release the latch to allow the application to shut down
-        }
-    }
-}
-
-@Bean
-    public CountDownLatch latch() {
-        return new CountDownLatch(1);
-    }
-
-
-
-
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.concurrent.CountDownLatch;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-public class ApplicationTest {
-
-    @Autowired
-    private ApplicationContext context;
-
-    @Autowired
-    private CountDownLatch latch;
-
-    @BeforeEach
-    public void setUp() {
-        // Set up before each test
-    }
-
-    @AfterEach
-    public void tearDown() {
-        // Release the latch after each test to ensure the application can shut down
-        latch.countDown();
-    }
-
-    @Test
-    public void testApplication() throws Exception {
-        // Simulate some work in the test
-        Thread.sleep(3000);  // Simulate work for 3 seconds
-        assertTrue(true);  // Dummy assertion
-    }
-}
+- Bachelor’s or Master’s degree in Computer Science
+- 10+ years of experience in software development, with a focus on Java and enterprise applications.
+- Strong experience with Java frameworks such as Spring, Spring MVC, and Struts.
+- Proficient in JMS (IBM MQ, Tibco EMS, Kafka) and integrating with messaging systems.
+- Extensive experience with Oracle databases, including performance tuning and complex query development.
+- Solid understanding of web technologies including JavaScript, jQuery, HTML, JSP, Servlets, and XML/XSLT.
+- Hands-on experience with GitLab for version control and CI/CD.
+- Basic experience with Azure cloud services.
+- Strong problem-solving skills and ability to think algorithmically.
+- Excellent communication and interpersonal skills, with a strong ability to lead and inspire a team.
+- Financial industry experience, particularly in repo trading, is highly desirable.
