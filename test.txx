@@ -1,41 +1,74 @@
+import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.wmq.WMQConstants;
+import javax.jms.*;
 
-**Key Responsibilities:**
+public class MqRequestResponseExample {
 
-- **Design and Architecture:**
-  - Lead the design and architecture of repo trading applications using Java and the ION platform.
-  - Develop high-level product specifications with attention to system integration and feasibility.
-  - Ensure the technical feasibility of UI/UX designs and provide technical insights for business requirements.
+    public static void main(String[] args) {
+        // Connection parameters
+        String queueManager = "QMGR";
+        String requestQueueName = "REQUEST.QUEUE";
+        String replyQueueName = "REPLY.QUEUE";
+        String host = "localhost";
+        int port = 1414;
+        String channel = "CHANNEL_NAME";
+        String user = "username";
+        String password = "password";
 
-- **Team Leadership:**
-  - Manage and mentor a team of software engineers, providing technical guidance and career development.
-  - Coordinate with other team leads and stakeholders to ensure timely delivery of high-quality software solutions.
-  - Conduct code reviews, ensure coding standards are followed, and promote best practices within the team.
+        try {
+            // Setup MQ connection factory
+            MQQueueConnectionFactory factory = new MQQueueConnectionFactory();
+            factory.setHostName(host);
+            factory.setPort(port);
+            factory.setQueueManager(queueManager);
+            factory.setChannel(channel);
+            factory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
 
-- **Development:**
-  - Implement robust and scalable software solutions using Java, Spring, JMS (IBM MQ, Tibco EMS, Kafka), and other related technologies.
-  - Utilize GitLab for version control and continuous integration/deployment.
-  - Leverage Oracle databases for data storage and retrieval, ensuring high performance and reliability.
-  - Develop web-based applications using Struts, Spring MVC, JSP, Servlets, JavaScript, jQuery, HTML, and XML/XSLT.
+            // Setup JMS connection, session, and queues
+            Connection connection = factory.createConnection(user, password);
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-- **Collaboration:**
-  - Work closely with cross-functional teams including QA, DevOps, and Product Management.
-  - Participate in agile ceremonies such as sprint planning, stand-ups, and retrospectives.
-  - Engage with clients and stakeholders to gather requirements, provide updates, and deliver solutions.
+            Queue requestQueue = session.createQueue(requestQueueName);
+            Queue replyQueue = session.createQueue(replyQueueName);
 
-- **Cloud and Infrastructure:**
-  - Basic knowledge and experience with Azure for deploying and managing applications.
-  - Ensure application security, performance, and scalability on cloud infrastructure.
+            // Create a producer to send request messages
+            MessageProducer producer = session.createProducer(requestQueue);
+            MessageConsumer consumer = session.createConsumer(replyQueue);
 
-**Qualifications:**
+            // Start the connection
+            connection.start();
 
-- Bachelor’s or Master’s degree in Computer Science
-- 10+ years of experience in software development, with a focus on Java and enterprise applications.
-- Strong experience with Java frameworks such as Spring, Spring MVC, and Struts.
-- Proficient in JMS (IBM MQ, Tibco EMS, Kafka) and integrating with messaging systems.
-- Extensive experience with Oracle databases, including performance tuning and complex query development.
-- Solid understanding of web technologies including JavaScript, jQuery, HTML, JSP, Servlets, and XML/XSLT.
-- Hands-on experience with GitLab for version control and CI/CD.
-- Basic experience with Azure cloud services.
-- Strong problem-solving skills and ability to think algorithmically.
-- Excellent communication and interpersonal skills, with a strong ability to lead and inspire a team.
-- Financial industry experience, particularly in repo trading, is highly desirable.
+            // Create and send request message
+            TextMessage requestMessage = session.createTextMessage("Request Data");
+            requestMessage.setJMSReplyTo(replyQueue); // Set reply queue for response
+            producer.send(requestMessage);
+
+            // Print the message ID for reference
+            System.out.println("Sent request message ID: " + requestMessage.getJMSMessageID());
+
+            // Set the correlation ID on the consumer for response
+            String correlationID = requestMessage.getJMSMessageID();
+            String messageSelector = "JMSCorrelationID = '" + correlationID + "'";
+            consumer = session.createConsumer(replyQueue, messageSelector);
+
+            // Receive the reply message
+            Message replyMessage = consumer.receive(5000); // Wait up to 5 seconds
+
+            if (replyMessage != null && replyMessage instanceof TextMessage) {
+                TextMessage textReply = (TextMessage) replyMessage;
+                System.out.println("Received reply: " + textReply.getText());
+            } else {
+                System.out.println("No reply received within the timeout period.");
+            }
+
+            // Clean up resources
+            producer.close();
+            consumer.close();
+            session.close();
+            connection.close();
+
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
+}
