@@ -1,74 +1,132 @@
-import com.ibm.mq.jms.MQQueueConnectionFactory;
-import com.ibm.msg.client.wmq.WMQConstants;
-import javax.jms.*;
+package com.example.validation;
 
-public class MqRequestResponseExample {
+public class ValidationResult {
 
-    public static void main(String[] args) {
-        // Connection parameters
-        String queueManager = "QMGR";
-        String requestQueueName = "REQUEST.QUEUE";
-        String replyQueueName = "REPLY.QUEUE";
-        String host = "localhost";
-        int port = 1414;
-        String channel = "CHANNEL_NAME";
-        String user = "username";
-        String password = "password";
+    private final boolean retry;
+    private final boolean reprocess;
 
-        try {
-            // Setup MQ connection factory
-            MQQueueConnectionFactory factory = new MQQueueConnectionFactory();
-            factory.setHostName(host);
-            factory.setPort(port);
-            factory.setQueueManager(queueManager);
-            factory.setChannel(channel);
-            factory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+    public ValidationResult(boolean retry, boolean reprocess) {
+        this.retry = retry;
+        this.reprocess = reprocess;
+    }
 
-            // Setup JMS connection, session, and queues
-            Connection connection = factory.createConnection(user, password);
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+    public boolean isRetry() {
+        return retry;
+    }
 
-            Queue requestQueue = session.createQueue(requestQueueName);
-            Queue replyQueue = session.createQueue(replyQueueName);
+    public boolean isReprocess() {
+        return reprocess;
+    }
 
-            // Create a producer to send request messages
-            MessageProducer producer = session.createProducer(requestQueue);
-            MessageConsumer consumer = session.createConsumer(replyQueue);
-
-            // Start the connection
-            connection.start();
-
-            // Create and send request message
-            TextMessage requestMessage = session.createTextMessage("Request Data");
-            requestMessage.setJMSReplyTo(replyQueue); // Set reply queue for response
-            producer.send(requestMessage);
-
-            // Print the message ID for reference
-            System.out.println("Sent request message ID: " + requestMessage.getJMSMessageID());
-
-            // Set the correlation ID on the consumer for response
-            String correlationID = requestMessage.getJMSMessageID();
-            String messageSelector = "JMSCorrelationID = '" + correlationID + "'";
-            consumer = session.createConsumer(replyQueue, messageSelector);
-
-            // Receive the reply message
-            Message replyMessage = consumer.receive(5000); // Wait up to 5 seconds
-
-            if (replyMessage != null && replyMessage instanceof TextMessage) {
-                TextMessage textReply = (TextMessage) replyMessage;
-                System.out.println("Received reply: " + textReply.getText());
-            } else {
-                System.out.println("No reply received within the timeout period.");
-            }
-
-            // Clean up resources
-            producer.close();
-            consumer.close();
-            session.close();
-            connection.close();
-
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public String toString() {
+        return "ValidationResult{" +
+            "retry=" + retry +
+            ", reprocess=" + reprocess +
+            '}';
     }
 }
+
+
+------------------------------
+package com.example.validation;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+@Service
+public class ValidationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ValidationService.class);
+
+    private final ValidationProperties validationProperties;
+
+    private final List<Pattern> retryPatterns = new ArrayList<>();
+    private final List<Pattern> reprocessPatterns = new ArrayList<>();
+
+    public ValidationService(ValidationProperties validationProperties) {
+        this.validationProperties = validationProperties;
+    }
+
+    @PostConstruct
+    private void initializePatterns() {
+        // Compile retry patterns
+        for (String regex : validationProperties.getRetry()) {
+            retryPatterns.add(Pattern.compile(regex));
+        }
+
+        // Compile reprocess patterns
+        for (String regex : validationProperties.getReprocess()) {
+            reprocessPatterns.add(Pattern.compile(regex));
+        }
+
+        logger.info("Validation patterns initialized. Retry: {}, Reprocess: {}", retryPatterns, reprocessPatterns);
+    }
+
+    public ValidationResult validateInput(String input) {
+        logger.info("Validating input: {}", input);
+
+        boolean retry = matchesAnyPattern(input, retryPatterns);
+        boolean reprocess = matchesAnyPattern(input, reprocessPatterns);
+
+        return new ValidationResult(retry, reprocess);
+    }
+
+    private boolean matchesAnyPattern(String input, List<Pattern> patterns) {
+        for (Pattern pattern : patterns) {
+            if (pattern.matcher(input).matches()) {
+                logger.debug("Input '{}' matches pattern: {}", input, pattern);
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+---------------
+
+package com.example.validation;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+@ConfigurationProperties(prefix = "validation.regex")
+public class ValidationProperties {
+
+    private List<String> retry;
+    private List<String> reprocess;
+
+    public List<String> getRetry() {
+        return retry;
+    }
+
+    public void setRetry(List<String> retry) {
+        this.retry = retry;
+    }
+
+    public List<String> getReprocess() {
+        return reprocess;
+    }
+
+    public void setReprocess(List<String> reprocess) {
+        this.reprocess = reprocess;
+    }
+}
+------------
+# Retry regex patterns
+validation.regex.retry.pattern1=^failed to find curve [a-zA-Z0-9_]+ and [a-zA-Z0-9_]+$
+validation.regex.retry.pattern2=^Database error [a-zA-Z0-9_]+ and [a-zA-Z0-9_]+ and [a-zA-Z0-9_]+$
+
+# Reprocess regex patterns
+validation.regex.reprocess.pattern3=^rectifying failed for [a-zA-Z0-9_]+ and [a-zA-Z0-9_]+$
+validation.regex.reprocess.pattern4=^unable to find [a-zA-Z0-9_]+ with [a-zA-Z0-9_]+$
+
