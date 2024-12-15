@@ -1,7 +1,7 @@
 package com.example.validation;
 
 public class ValidationResult {
-
+//test commit
     private final boolean retry;
     private final boolean reprocess;
 
