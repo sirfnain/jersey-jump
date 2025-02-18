@@ -220,3 +220,21 @@
 </plugin>
 
 
+<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replace dir="${project.build.directory}/generated-sources/protobuf" includes="**/*.java" token="javax.xml.bind" value="jakarta.xml.bind" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
