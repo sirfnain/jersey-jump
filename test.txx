@@ -193,3 +193,30 @@
         <version>2.1.1</version> <!-- Latest Version -->
     </dependency>
 </dependencies>
+
+<plugin>
+    <groupId>com.google.code.maven-replacer-plugin</groupId>
+    <artifactId>maven-replacer-plugin</artifactId>
+    <version>1.5.3</version>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>replace</goal>
+            </goals>
+            <configuration>
+                <includes>
+                    <include>${project.build.directory}/generated-sources/proto/**/*.java</include>
+                </includes>
+                <replacements>
+                    <replacement>
+                        <token>javax.annotation.Generated</token>
+                        <value>jakarta.annotation.Generated</value>
+                    </replacement>
+                </replacements>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+
