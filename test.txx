@@ -159,3 +159,37 @@
         </plugins>
     </build>
 </project>
+
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.xolstice.maven.plugins</groupId>
+            <artifactId>protobuf-maven-plugin</artifactId>
+            <version>0.6.1</version>  <!-- Ensure latest version -->
+            <configuration>
+                <protocArtifact>com.google.protobuf:protoc:3.25.1</protocArtifact>
+                <pluginId>grpc-java</pluginId>
+                <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.60.0</pluginArtifact>
+                <outputDirectory>${project.build.directory}/generated-sources/proto</outputDirectory>
+                <option>annotation=jakarta</option>  <!-- Forces Jakarta Annotations -->
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>compile</goal>
+                        <goal>compile-custom</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+
+<dependencies>
+    <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>2.1.1</version> <!-- Latest Version -->
+    </dependency>
+</dependencies>
